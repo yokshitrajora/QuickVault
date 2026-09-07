@@ -31,8 +31,10 @@ app.get('/api/health', (req, res) => res.json({ ok: true, ts: new Date() }));
 // ── Static (production Vite build) ────────────────────────────────────────────
 const distDir = join(__dirname, '..', 'dist');
 app.use(express.static(distDir));
-app.get('*', (req, res) => {
-  res.sendFile(join(distDir, 'index.html'));
+app.use((req, res) => {
+  res.sendFile(join(distDir, 'index.html'), (err) => {
+    if (err) res.status(404).send('Not found');
+  });
 });
 
 app.listen(PORT, () => {
