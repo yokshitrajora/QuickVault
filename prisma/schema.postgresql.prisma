@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ItemType {
+  BOOKMARK
+  SNIPPET
+  NOTE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  auth0Id   String   @unique
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     Item[]
+  tags      Tag[]
+}
+
+model Item {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        ItemType
+  title       String
+  description String?   @db.Text
+  url         String?   @db.Text
+  content     String?   @db.Text
+  language    String?
+  ogImage     String?   @db.Text
+  favicon     String?   @db.Text
+  isFavorite  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  itemTags    ItemTag[]
+
+  @@index([userId, type])
+  @@index([userId, isFavorite])
+  @@index([userId, createdAt])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemTags  ItemTag[]
+  createdAt DateTime  @default(now())
+
+  @@unique([name, userId])
+  @@index([userId])
+}
+
+model ItemTag {
+  itemId String
+  tagId  String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, tagId])
+  @@index([tagId])
+  @@index([itemId])
+}
