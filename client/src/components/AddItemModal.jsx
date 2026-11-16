@@ -112,7 +112,7 @@ export function AddItemModal({ isOpen, onClose, initialType = 'BOOKMARK', onSave
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className={`modal ${activeType === 'NOTE' ? 'modal-note' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Header with Type Selector */}
         <div className="modal-header">
           <div className="type-tabs">
@@ -261,15 +261,15 @@ export function AddItemModal({ isOpen, onClose, initialType = 'BOOKMARK', onSave
 
                 {mdTab === 'write' ? (
                   <textarea
-                    rows={8}
-                    className="form-textarea"
+                    rows={16}
+                    className="form-textarea note-editor-textarea"
                     placeholder="# Heading&#10;&#10;Write markdown notes here..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     required
                   />
                 ) : (
-                  <div className="md-preview">
+                  <div className="note-editor-preview">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {content || '*No content yet*'}
                     </ReactMarkdown>

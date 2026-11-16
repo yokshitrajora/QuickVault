@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Star, Tag } from 'lucide-react';
+import { X, Star, Tag, PenTool, Eye } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { api } from '../api/client';
 
 const LANGUAGES = [
@@ -17,6 +19,7 @@ export function EditItemModal({ item, isOpen, onClose, onSaved }) {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [mdTab, setMdTab] = useState('write');
 
   useEffect(() => {
     if (item) {
@@ -27,6 +30,7 @@ export function EditItemModal({ item, isOpen, onClose, onSaved }) {
       setLanguage(item.language || 'typescript');
       setIsFavorite(item.isFavorite || false);
       setTags(item.tags || []);
+      setMdTab('write');
     }
   }, [item]);
 
@@ -77,7 +81,7 @@ export function EditItemModal({ item, isOpen, onClose, onSaved }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className={`modal ${item.type === 'NOTE' ? 'modal-note' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '10px', fontFamily: 'monospace', textTransform: 'uppercase', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
@@ -134,7 +138,7 @@ export function EditItemModal({ item, isOpen, onClose, onSaved }) {
                 <div className="form-group">
                   <label className="form-label">Code</label>
                   <textarea
-                    rows={8}
+                    rows={12}
                     className="form-textarea code"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -145,15 +149,45 @@ export function EditItemModal({ item, isOpen, onClose, onSaved }) {
             )}
 
             {item.type === 'NOTE' && (
-              <div className="form-group">
-                <label className="form-label">Markdown Content</label>
-                <textarea
-                  rows={8}
-                  className="form-textarea"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  required
-                />
+              <div className="form-group" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ fontWeight: 600 }}>Markdown Content</label>
+                  <div className="md-tabs">
+                    <button
+                      type="button"
+                      className={`md-tab ${mdTab === 'write' ? 'active' : ''}`}
+                      onClick={() => setMdTab('write')}
+                    >
+                      <PenTool className="w-3 h-3" />
+                      <span>Write</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`md-tab ${mdTab === 'preview' ? 'active' : ''}`}
+                      onClick={() => setMdTab('preview')}
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>Preview</span>
+                    </button>
+                  </div>
+                </div>
+
+                {mdTab === 'write' ? (
+                  <textarea
+                    rows={18}
+                    className="form-textarea note-editor-textarea"
+                    placeholder="Write markdown notes here..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                  />
+                ) : (
+                  <div className="note-editor-preview">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {content || '*No content yet*'}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </div>
             )}
 
