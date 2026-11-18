@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 import { authMiddleware } from './auth.js';
+import authRouter     from './routes/auth.js';
 import itemsRouter    from './routes/items.js';
 import tagsRouter     from './routes/tags.js';
 import metadataRouter from './routes/metadata.js';
@@ -20,6 +21,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // ── API Routes ────────────────────────────────────────────────────────────────
+app.use('/api/auth',     authRouter);
 app.use('/api/items',    authMiddleware, itemsRouter);
 app.use('/api/tags',     authMiddleware, tagsRouter);
 app.use('/api/metadata', authMiddleware, metadataRouter);

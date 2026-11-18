@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api } from './api/client';
+import { api, getToken, removeToken } from './api/client';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { BookmarkCard } from './components/BookmarkCard';
@@ -9,7 +9,8 @@ import { AddItemModal } from './components/AddItemModal';
 import { EditItemModal } from './components/EditItemModal';
 import { ItemDetailModal } from './components/ItemDetailModal';
 import { CommandMenu } from './components/CommandMenu';
-import { Plus, X, Inbox, Sparkles } from 'lucide-react';
+import { LoginPage } from './components/LoginPage';
+import { Plus, X, Inbox, Sparkles, Loader2 } from 'lucide-react';
 
 const FILTER_TITLES = {
   ALL: 'All Items',
@@ -20,6 +21,10 @@ const FILTER_TITLES = {
 };
 
 export function App() {
+  // Auth state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
   // Navigation & Filter state
   const [filter, setFilter] = useState('ALL');
   const [selectedTag, setSelectedTag] = useState(null);
@@ -31,7 +36,7 @@ export function App() {
   const [items, setItems] = useState([]);
   const [tags, setTags] = useState([]);
   const [allItems, setAllItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
 
   // Modals state
@@ -54,8 +59,47 @@ export function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Auth bootstrap check
+  useEffect(() => {
+    async function checkAuth() {
+      const token = getToken();
+      if (!token) {
+        setIsAuthChecking(false);
+        return;
+      }
+      try {
+        const res = await api.getMe();
+        setCurrentUser(res.user);
+      } catch {
+        removeToken();
+        setCurrentUser(null);
+      } finally {
+        setIsAuthChecking(false);
+      }
+    }
+    checkAuth();
+
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {}
+    removeToken();
+    setCurrentUser(null);
+    setItems([]);
+    setAllItems([]);
+    setTags([]);
+  };
+
   // Fetch items
   const fetchItems = useCallback(async () => {
+    if (!currentUser) return;
     try {
       const params = {};
       if (searchQuery) params.q = searchQuery;
@@ -68,10 +112,11 @@ export function App() {
     } catch (err) {
       console.error('Failed to fetch items:', err);
     }
-  }, [filter, selectedTag, searchQuery]);
+  }, [currentUser, filter, selectedTag, searchQuery]);
 
   // Fetch all items (for global command search & counts) and tags
   const fetchMetadata = useCallback(async () => {
+    if (!currentUser) return;
     try {
       const [all, tagList] = await Promise.all([api.getItems(), api.getTags()]);
       setAllItems(all);
@@ -79,17 +124,20 @@ export function App() {
     } catch (err) {
       console.error('Failed to fetch metadata:', err);
     }
-  }, []);
+  }, [currentUser]);
 
   const refreshAll = useCallback(async () => {
+    if (!currentUser) return;
     setIsLoading(true);
     await Promise.all([fetchItems(), fetchMetadata()]);
     setIsLoading(false);
-  }, [fetchItems, fetchMetadata]);
+  }, [currentUser, fetchItems, fetchMetadata]);
 
   useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
+    if (currentUser) {
+      refreshAll();
+    }
+  }, [currentUser, refreshAll]);
 
   // Global Keyboard shortcuts (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -162,6 +210,20 @@ export function App() {
     }
   };
 
+  // If checking authentication status on initial load
+  if (isAuthChecking) {
+    return (
+      <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
+      </div>
+    );
+  }
+
+  // If not authenticated, display the Login / Sign Up Page
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={(user) => setCurrentUser(user)} />;
+  }
+
   const itemCounts = {
     ALL: allItems.length,
     BOOKMARK: allItems.filter((i) => i.type === 'BOOKMARK').length,
@@ -184,6 +246,8 @@ export function App() {
         isSeeding={isSeeding}
         isOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}

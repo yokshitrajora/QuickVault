@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, Bookmark, Code2, FileText, Star, Tag, Sparkles } from 'lucide-react';
+import { LayoutGrid, Bookmark, Code2, FileText, Star, Tag, Sparkles, LogOut } from 'lucide-react';
 
 export function Sidebar({
   currentFilter,
@@ -12,6 +12,8 @@ export function Sidebar({
   isSeeding,
   isOpen,
   onCloseMobile,
+  currentUser,
+  onLogout,
 }) {
   const navItems = [
     { type: 'ALL', label: 'All Items', icon: LayoutGrid, count: itemCounts.ALL },
@@ -100,13 +102,25 @@ export function Sidebar({
       <div className="sidebar-footer">
         <img
           className="user-avatar"
-          src="https://api.dicebear.com/8.x/initials/svg?seed=Demo%20User"
+          src={
+            currentUser?.avatar ||
+            `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(currentUser?.name || 'User')}`
+          }
           alt="Avatar"
         />
         <div className="user-info">
-          <div className="user-name">Demo User</div>
-          <div className="user-email">demo@quickvault.dev</div>
+          <div className="user-name">{currentUser?.name || 'User'}</div>
+          <div className="user-email">{currentUser?.email || ''}</div>
         </div>
+        <button
+          type="button"
+          className="action-btn danger"
+          title="Log out"
+          onClick={onLogout}
+          style={{ marginLeft: 'auto', padding: '6px' }}
+        >
+          <LogOut className="w-3.5 h-3.5" />
+        </button>
       </div>
     </aside>
   );

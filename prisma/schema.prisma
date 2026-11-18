@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id      String @id @default(cuid())
-  auth0Id String @unique
-  email   String @unique
-  name    String
-  avatar  String?
-  items   Item[]
-  tags    Tag[]
+  id        String   @id @default(cuid())
+  auth0Id   String?  @unique
+  email     String   @unique
+  password  String?
+  name      String
+  avatar    String?
+  items     Item[]
+  tags      Tag[]
   createdAt DateTime @default(now())
 }
 
