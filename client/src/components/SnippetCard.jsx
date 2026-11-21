@@ -24,7 +24,7 @@ export function SnippetCard({ item, viewMode, onEdit, onDelete, onToggleFavorite
         <div className="card-list-body">
           <div className="card-list-title">
             <span>{item.title}</span>
-            <span style={{ fontSize: '10px', marginLeft: '6px', fontFamily: 'monospace', color: 'var(--text-xmuted)', background: 'var(--bg-hover)', padding: '1px 5px', borderRadius: '3px' }}>
+            <span className="snippet-lang" style={{ marginLeft: '6px' }}>
               {lang}
             </span>
           </div>
@@ -179,7 +179,7 @@ export function SnippetCard({ item, viewMode, onEdit, onDelete, onToggleFavorite
               </button>
             ))
           ) : (
-            <span style={{ fontSize: '10px', color: 'var(--text-xmuted)', fontFamily: 'monospace' }}>no tags</span>
+            <span className="no-tags">no tags</span>
           )}
         </div>
         <button

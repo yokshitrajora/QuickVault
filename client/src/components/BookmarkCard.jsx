@@ -40,7 +40,7 @@ export function BookmarkCard({ item, viewMode, onEdit, onDelete, onToggleFavorit
               <span>{item.title}</span>
               <ExternalLink className="w-3 h-3 opacity-60 inline" />
             </a>
-            <span style={{ fontSize: '10px', marginLeft: '6px', fontFamily: 'monospace', color: 'var(--text-xmuted)', background: 'var(--bg-hover)', padding: '1px 5px', borderRadius: '3px' }}>
+            <span className="card-domain" style={{ marginLeft: '6px' }}>
               {domain}
             </span>
           </div>
@@ -195,7 +195,7 @@ export function BookmarkCard({ item, viewMode, onEdit, onDelete, onToggleFavorit
               </button>
             ))
           ) : (
-            <span style={{ fontSize: '10px', color: 'var(--text-xmuted)', fontFamily: 'monospace' }}>no tags</span>
+            <span className="no-tags">no tags</span>
           )}
         </div>
         <button
